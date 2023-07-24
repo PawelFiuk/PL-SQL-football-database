@@ -1,0 +1,438 @@
+﻿-- -------------------------------------------------------------------------------
+-- TWORZENIE STRUKTURY BAZY DANYCH                                         
+-- -------------------------------------------------------------------------------
+
+CREATE TABLE klub (
+    kraj_pochodzenia   CHAR(20 CHAR),
+    stadion            CHAR(20 CHAR),
+    rok_założenia      INTEGER,
+    piłkarze           CHAR(30 CHAR),
+    trener             CHAR(20 CHAR),
+    numer_id_fifa      INTEGER NOT NULL,
+    liga               CHAR(20 CHAR),
+    stadion_id_stadion INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX klub__idx ON
+    klub (
+        stadion_id_stadion
+    ASC );
+
+ALTER TABLE klub ADD CONSTRAINT klub_pk PRIMARY KEY ( numer_id_fifa );
+
+CREATE TABLE liga (
+    nazwa              CHAR(20 CHAR),
+    kraj               CHAR(20 CHAR),
+    liczba_drużyn      INTEGER,
+    rok_założenia      INTEGER,
+    ranking_fifa       INTEGER,
+    klub_numer_id_fifa INTEGER NOT NULL,
+    id_liga            INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX liga__idx ON
+    liga (
+        klub_numer_id_fifa
+    ASC );
+
+ALTER TABLE liga ADD CONSTRAINT liga_pk PRIMARY KEY ( id_liga );
+
+CREATE TABLE mecz (
+    data                  DATE,
+    wynik                 INTEGER,
+    drużyna               CHAR(30),
+    id_meczu              INTEGER NOT NULL,
+    sędzia_id_sedzia      INTEGER NOT NULL,
+    klub_numer_id_fifa    INTEGER NOT NULL,
+    sędzia_numer_licencji INTEGER NOT NULL
+);
+
+ALTER TABLE mecz
+    ADD CONSTRAINT mecz_pk PRIMARY KEY ( sędzia_numer_licencji,
+                                         klub_numer_id_fifa,
+                                         id_meczu );
+
+CREATE TABLE narodowość (
+    kraj          CHAR(15 CHAR),
+    język         CHAR(18 CHAR),
+    waluta        CHAR(15 CHAR),
+    stolica       CHAR(20 CHAR),
+    id_narodowosc INTEGER NOT NULL
+);
+
+ALTER TABLE narodowość ADD CONSTRAINT narodowość_pk PRIMARY KEY ( id_narodowosc );
+
+CREATE TABLE piłkarz (
+    imie                     CHAR(15 CHAR),
+    nazwisko                 CHAR(20 CHAR),
+    pesel                    INTEGER NOT NULL,
+    pozycja                  CHAR(10 CHAR),
+    numer_koszulki           CHAR(2 CHAR),
+    klub                     CHAR(20 CHAR),
+    strzelone_bramki         INTEGER,
+    asysty                   INTEGER,
+    narodowosc               CHAR(30 CHAR),
+    klub_numer_id_fifa       INTEGER NOT NULL,
+    narodowość_id_narodowosc INTEGER NOT NULL
+);
+
+ALTER TABLE piłkarz
+    ADD CONSTRAINT piłkarz_pk PRIMARY KEY ( pesel,
+                                            klub_numer_id_fifa,
+                                            narodowość_id_narodowosc );
+
+CREATE TABLE sędzia (
+    imię           CHAR(20 CHAR),
+    nazwisko       CHAR(20 CHAR),
+    narodowość     CHAR(20 CHAR),
+    numer_licencji INTEGER NOT NULL,
+    id_sedzia      INTEGER NOT NULL
+);
+
+ALTER TABLE sędzia ADD CONSTRAINT sędzia_pk PRIMARY KEY ( numer_licencji );
+
+CREATE TABLE stadion (
+    nazwa                    CHAR(20 CHAR),
+    miasto                   CHAR(30 CHAR),
+    drużyna                  CHAR(20 CHAR),
+    kraj                     CHAR(20 CHAR),
+    ulica                    INTEGER,
+    numer_budynku            INTEGER,
+    id_stadion               INTEGER NOT NULL,
+    narodowość_id_narodowosc INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX stadion__idx ON
+    stadion (
+        narodowość_id_narodowosc
+    ASC );
+
+ALTER TABLE stadion ADD CONSTRAINT stadion_pk PRIMARY KEY ( id_stadion );
+
+CREATE TABLE trener (
+    imie                     CHAR(20 CHAR),
+    nazwisko                 CHAR(20 CHAR),
+    pesel                    INTEGER NOT NULL,
+    narodowość               CHAR(20 CHAR),
+    klub                     CHAR(30),
+    licencja_trenerska       INTEGER,
+    klub_numer_id_fifa       INTEGER NOT NULL,
+    narodowość_id_narodowosc INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX trener__idx ON
+    trener (
+        klub_numer_id_fifa
+    ASC );
+
+CREATE UNIQUE INDEX trener__idxv1 ON
+    trener (
+        narodowość_id_narodowosc
+    ASC );
+
+ALTER TABLE trener ADD CONSTRAINT trener_pk PRIMARY KEY ( pesel );
+
+ALTER TABLE klub
+    ADD CONSTRAINT klub_stadion_fk FOREIGN KEY ( stadion_id_stadion )
+        REFERENCES stadion ( id_stadion )
+	ON DELETE CASCADE;
+
+ALTER TABLE liga
+    ADD CONSTRAINT liga_klub_fk FOREIGN KEY ( klub_numer_id_fifa )
+        REFERENCES klub ( numer_id_fifa )
+       ON DELETE CASCADE; 
+
+ALTER TABLE mecz
+    ADD CONSTRAINT mecz_klub_fk FOREIGN KEY ( klub_numer_id_fifa )
+        REFERENCES klub ( numer_id_fifa );
+
+ALTER TABLE mecz
+    ADD CONSTRAINT mecz_sędzia_fk FOREIGN KEY ( sędzia_numer_licencji )
+        REFERENCES sędzia ( numer_licencji );
+
+ALTER TABLE piłkarz
+    ADD CONSTRAINT piłkarz_klub_fk FOREIGN KEY ( klub_numer_id_fifa )
+        REFERENCES klub ( numer_id_fifa );
+
+ALTER TABLE piłkarz
+    ADD CONSTRAINT piłkarz_narodowość_fk FOREIGN KEY ( narodowość_id_narodowosc )
+        REFERENCES narodowość ( id_narodowosc );
+
+ALTER TABLE stadion
+    ADD CONSTRAINT stadion_narodowość_fk FOREIGN KEY ( narodowość_id_narodowosc )
+        REFERENCES narodowość ( id_narodowosc );
+
+ALTER TABLE trener
+    ADD CONSTRAINT trener_klub_fk FOREIGN KEY ( klub_numer_id_fifa )
+        REFERENCES klub ( numer_id_fifa );
+
+ALTER TABLE trener
+    ADD CONSTRAINT trener_narodowość_fk FOREIGN KEY ( narodowość_id_narodowosc )
+        REFERENCES narodowość ( id_narodowosc );
+
+
+
+
+-- -------------------------------------------------------------------------------
+-- POLECENIA:   5 X INSERT  DO WSZYSTKICH TABEL                                               
+-- -------------------------------------------------------------------------------
+
+
+
+INSERT INTO narodowość (kraj, język, waluta, stolica, id_narodowosc) 
+    VALUES ('Polska', 'polski', 'PLN', 'Warszawa', 6);
+
+INSERT INTO narodowość (kraj, język, waluta, stolica, id_narodowosc) 
+    VALUES ('Niemcy', 'niemiecki', 'EURO', 'Berlin', 2);
+
+INSERT INTO narodowość (kraj, język, waluta, stolica, id_narodowosc) 
+    VALUES ('Francja', 'francuski', 'EURO', 'Paryż', 3);
+    
+INSERT INTO narodowość (kraj, język, waluta, stolica, id_narodowosc) 
+    VALUES ('Wielka Brytania', 'angielski', 'Funt', 'Londyn', 4);
+
+INSERT INTO narodowość (kraj, język, waluta, stolica, id_narodowosc) 
+    VALUES ('Hiszpania', 'hiszpański', 'EURO', 'Madryt', 5);
+    
+
+
+INSERT INTO stadion (nazwa, miasto, kraj, ulica, numer_budynku, narodowość_id_narodowosc, id_stadion ) 
+   VALUES ('Kartoflisko', 'Opole', 'Polska', 13, 2, 6, 1);
+
+INSERT INTO stadion (nazwa, miasto, kraj, ulica, numer_budynku, narodowość_id_narodowosc, id_stadion ) 
+   VALUES ('Parowkopol', 'Berlin', 'Niemcy', 14, 3, 2, 2);
+   
+INSERT INTO stadion (nazwa, miasto, kraj, ulica, numer_budynku, narodowość_id_narodowosc, id_stadion ) 
+   VALUES ('Santiago Bernabeu', 'Madryt', 'Hiszpania',34, 12, 5, 3);
+   
+INSERT INTO stadion (nazwa, miasto, kraj, ulica, numer_budynku, narodowość_id_narodowosc, id_stadion ) 
+   VALUES ('Wembley', 'Londyn', 'Wielka Brytania', 54, 122, 4, 4);
+
+INSERT INTO stadion (nazwa, miasto, kraj, ulica, numer_budynku, narodowość_id_narodowosc, id_stadion ) 
+   VALUES ('Sate', 'Paryż', 'Francja', 72, 52, 3, 5);
+    
+
+
+
+INSERT INTO klub ( kraj_pochodzenia, stadion, rok_założenia, numer_id_fifa, liga, stadion_id_stadion) 
+	VALUES ('Polska', 'Tauron Arena', 2000, 2137, 'Ekstraklasa', 1);
+
+INSERT INTO klub ( kraj_pochodzenia, stadion, rok_założenia, numer_id_fifa, liga, stadion_id_stadion) 
+	VALUES ( 'Hiszpania', 'Santiago Bernabeu', 1919, 1000, 'La Liga', 3);
+
+INSERT INTO klub (kraj_pochodzenia, stadion, rok_założenia, numer_id_fifa, liga, stadion_id_stadion) 
+	VALUES ('Wielka Brytania', 'Wembley', 1945, 34, 'Premier League', 4);
+
+INSERT INTO klub ( kraj_pochodzenia, stadion, rok_założenia, numer_id_fifa, liga, stadion_id_stadion) 
+	VALUES ('Niemcy', 'Parowkopol', 1956, 456, 'Bundesliga', 2);
+
+INSERT INTO klub ( kraj_pochodzenia, stadion, rok_założenia, numer_id_fifa, liga, stadion_id_stadion) 
+	VALUES ('Francja', 'Sate', 2010, 27, 'La leage', 5);
+
+
+
+
+
+
+INSERT INTO piłkarz (imie, nazwisko, pesel, pozycja, numer_koszulki, klub, strzelone_bramki, asysty, narodowosc, klub_numer_id_fifa, narodowość_id_narodowosc) 
+	VALUES ('Robert', 'Lewandowski', 2020349283, 'Napastnik', '9', 'Real Madyt', 21, 2, 'polska', 1000, 6);
+
+INSERT INTO piłkarz (imie, nazwisko, pesel, pozycja, numer_koszulki, klub, strzelone_bramki, asysty, narodowosc, klub_numer_id_fifa, narodowość_id_narodowosc) 
+	VALUES ('Krzysztof', 'Piątek', 012890300, 'Napastnik', '10', 'Berlinetta', 11, 0, 'polska', 456, 2);
+
+INSERT INTO piłkarz (imie, nazwisko, pesel, pozycja, numer_koszulki, klub, strzelone_bramki, asysty, narodowosc, klub_numer_id_fifa, narodowość_id_narodowosc) 
+	VALUES ('Gianluigi', 'Donnaruma', 012921651, 'Bramkarz', '1', 'PSG', 0, 0, 'francuska', 27, 3);
+
+INSERT INTO piłkarz (imie, nazwisko, pesel, pozycja, numer_koszulki, klub, strzelone_bramki, asysty, narodowosc, klub_numer_id_fifa, narodowość_id_narodowosc) 
+	VALUES ('Lionell', 'Messi', 2847202812, 'Skrzydłowy', '7', 'Arsenal', 40, 22, 'hiszpańska', 34, 5);
+
+INSERT INTO piłkarz (imie, nazwisko, pesel, pozycja, numer_koszulki, klub, strzelone_bramki, asysty, narodowosc, klub_numer_id_fifa, narodowość_id_narodowosc) 
+	VALUES ('Rob', 'McGuayer', 62719819, 'Obrońca', '5', 'KS Kartoflanka', 2, 2, 'brytyjska', 2137, 4);
+
+
+
+
+
+INSERT INTO liga (nazwa, kraj, liczba_drużyn, rok_założenia, ranking_fifa, klub_numer_id_fifa, id_liga) 
+	VALUES ('Ekstraklasa', 'Polska', 12, 1945, 20, 2137 , 1);
+
+INSERT INTO liga (nazwa, kraj, liczba_drużyn, rok_założenia, ranking_fifa, klub_numer_id_fifa, id_liga) 
+	VALUES ('Bundesliga', 'Niemcy', 16, 1945, 3, 456 , 2);
+
+INSERT INTO liga (nazwa, kraj, liczba_drużyn, rok_założenia, ranking_fifa, klub_numer_id_fifa, id_liga) 
+	VALUES ('La leage', 'Francja', 15, 1934, 2, 27 , 3);
+
+INSERT INTO liga (nazwa, kraj, liczba_drużyn, rok_założenia, ranking_fifa, klub_numer_id_fifa, id_liga) 
+	VALUES ('Premier League', 'Wielka Brytania', 20, 1910, 1, 34 , 4);
+
+INSERT INTO liga (nazwa, kraj, liczba_drużyn, rok_założenia, ranking_fifa, klub_numer_id_fifa, id_liga) 
+	VALUES ('La Liga', 'Hiszpania', 12, 1945, 5, 1000, 5);
+
+
+
+
+INSERT INTO sędzia (imię, nazwisko, narodowość, numer_licencji, id_sedzia)
+	VALUES ('Robert', 'Gumny', 'polska', 1, 1);
+
+INSERT INTO sędzia (imię, nazwisko, narodowość, numer_licencji, id_sedzia)
+	VALUES ('John', 'Black', 'brytyjska', 2, 2);
+
+INSERT INTO sędzia (imię, nazwisko, narodowość, numer_licencji, id_sedzia)
+	VALUES ('Jan', 'Akrapovich', 'polska', 3, 3);
+
+INSERT INTO sędzia (imię, nazwisko, narodowość, numer_licencji, id_sedzia)
+	VALUES ('Rui', 'Garcia', 'hiszpańska', 4, 4);
+
+INSERT INTO sędzia (imię, nazwisko, narodowość, numer_licencji, id_sedzia)
+	VALUES ('Adam', 'Zar', 'niemiecka', 5, 5);
+
+
+
+
+
+INSERT INTO trener (imie, nazwisko, pesel, narodowość, licencja_trenerska, klub_numer_id_fifa, narodowość_id_narodowosc)
+	VALUES ('Adam', 'Nawałka', 89128987289, 'polska', 1, 2137 , 6);
+
+INSERT INTO trener (imie, nazwisko, pesel, narodowość, licencja_trenerska, klub_numer_id_fifa, narodowość_id_narodowosc)
+	VALUES ('Marek', 'Papszun', 739567821, 'polska', 2, 456 , 3);
+
+INSERT INTO trener (imie, nazwisko, pesel, narodowość, licencja_trenerska, klub_numer_id_fifa, narodowość_id_narodowosc)
+	VALUES ('Jose', 'Mourinho', 860365012, 'hiszpańska', 3, 1000 , 5);
+
+INSERT INTO trener (imie, nazwisko, pesel, narodowość, licencja_trenerska, klub_numer_id_fifa, narodowość_id_narodowosc)
+	VALUES ('Graham', 'Potter', 888573631, 'brytyjska', 4, 34 , 4);
+
+INSERT INTO trener (imie, nazwisko, pesel, narodowość, licencja_trenerska, klub_numer_id_fifa, narodowość_id_narodowosc)
+	VALUES ('Jurgen', 'Klopp', 978475960, 'Niemiecka', 5, 27 , 2);
+
+
+
+
+
+INSERT INTO mecz (data, drużyna, id_meczu, sędzia_id_sedzia, klub_numer_id_fifa, sędzia_numer_licencji)
+	VALUES ('2023-01-04','KS Kartoflanka' , 1, 3, 2137, 3);
+
+INSERT INTO mecz (data, drużyna, id_meczu, sędzia_id_sedzia, klub_numer_id_fifa, sędzia_numer_licencji)
+	VALUES ('2023-02-12','KS Kartoflanka' , 2, 1, 2137, 1);
+
+INSERT INTO mecz (data, drużyna, id_meczu, sędzia_id_sedzia, klub_numer_id_fifa, sędzia_numer_licencji)
+	VALUES ('2022-10-22','KS Kartoflanka' , 3, 3, 2137, 3);
+
+INSERT INTO mecz (data, drużyna, id_meczu, sędzia_id_sedzia, klub_numer_id_fifa, sędzia_numer_licencji)
+	VALUES ('2022-12-6','Real Madyt' , 4, 3, 1000, 3);
+
+INSERT INTO mecz (data, drużyna, id_meczu, sędzia_id_sedzia, klub_numer_id_fifa, sędzia_numer_licencji)
+	VALUES ('2023-03-01','Real Madyt' , 5, 3, 1000, 3);
+
+
+
+
+
+-- -------------------------------------------------------------------------------
+-- POLECENIA:   10 X SELECT                                                    
+-- -------------------------------------------------------------------------------
+
+
+SELECT * FROM piłkarz WHERE pozycja LIKE '%apa%';
+
+SELECT * FROM mecz WHERE data BETWEEN '2022-01-01' AND '2022-12-31';
+
+SELECT AVG(strzelone_bramki)
+	FROM piłkarz
+	WHERE piłkarz.strzelone_bramki < 2;
+
+SELECT imie, nazwisko, strzelone_bramki, asysty
+	FROM piłkarz
+	ORDER BY strzelone_bramki DESC;
+
+SELECT * FROM stadion;
+
+SELECT piłkarz.nazwisko, klub.liga, stadion.nazwa
+	FROM piłkarz
+	INNER JOIN klub ON piłkarz.klub_numer_id_fifa = klub.numer_id_fifa
+	INNER JOIN stadion ON klub.stadion_id_stadion = stadion.id_stadion;
+
+SELECT klub.rok_założenia, stadion.nazwa
+	FROM klub
+	LEFT JOIN stadion ON klub.stadion_id_stadion = stadion.id_stadion;
+
+SELECT piłkarz.pesel, piłkarz.nazwisko, liga.nazwa
+	FROM piłkarz
+	INNER JOIN klub ON piłkarz.klub_numer_id_fifa = klub.numer_id_fifa
+	INNER JOIN liga ON klub.liga = liga.nazwa;
+
+
+SELECT * FROM piłkarz WHERE nazwisko LIKE '%ski%';
+
+
+SELECT * FROM piłkarz WHERE narodowość_id_narodowosc = 6;
+
+
+
+-- -------------------------------------------------------------------------------
+-- POLECENIA:   5 X UPDATE                                             
+-- -------------------------------------------------------------------------------
+
+
+
+UPDATE klub
+	SET piłkarze = (SELECT nazwisko FROM piłkarz WHERE piłkarz.klub_numer_id_fifa = 1000)
+	WHERE numer_id_fifa = 1000;
+
+UPDATE klub
+	SET piłkarze = (SELECT nazwisko FROM piłkarz WHERE piłkarz.klub_numer_id_fifa = 2137)
+	WHERE numer_id_fifa = 2137;
+
+
+UPDATE klub
+	SET trener = (SELECT nazwisko FROM trener WHERE trener.klub_numer_id_fifa = 2137)
+	WHERE numer_id_fifa = 2137;
+
+
+UPDATE stadion
+	SET drużyna = (SELECT numer_id_fifa FROM klub WHERE klub.stadion_id_stadion = 1 )
+	WHERE id_stadion = 1;
+
+
+UPDATE stadion
+	SET drużyna = (SELECT numer_id_fifa FROM klub WHERE klub.stadion_id_stadion = 3 )
+	WHERE id_stadion = 3;
+
+
+-- -------------------------------------------------------------------------------
+-- POLECENIA:   5 X DELETE                                         
+-- -------------------------------------------------------------------------------
+
+
+DELETE FROM trener WHERE klub_numer_id_fifa = 456;
+
+DELETE FROM piłkarz WHERE strzelone_bramki < 5 OR asysty < 1;
+
+DELETE FROM piłkarz WHERE narodowość_id_narodowosc =  2;
+
+DELETE FROM trener WHERE narodowość_id_narodowosc = 2;
+
+DELETE FROM liga WHERE rok_założenia > 1920;
+
+
+
+-- -------------------------------------------------------------------------------
+-- USUWANIE STRUKTURY BAZY DANYCH                                       
+-- -------------------------------------------------------------------------------
+
+
+DROP TABLE mecz;
+
+DROP TABLE trener;
+
+DROP TABLE sędzia;
+
+DROP TABLE liga;
+
+DROP TABLE piłkarz;
+
+DROP TABLE klub;
+
+DROP TABLE stadion;
+
+DROP TABLE narodowość;

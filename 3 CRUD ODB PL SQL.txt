@@ -1,0 +1,286 @@
+
+-- -------------------------------------------------------------------------------
+-- TWORZENIE STRUKTURY BAZY DANYCH                                           
+-- -------------------------------------------------------------------------------
+
+
+CREATE OR REPLACE TYPE piłkarz_type;
+/
+
+CREATE OR REPLACE TYPE stadion_type;
+/
+
+CREATE OR REPLACE TYPE klub_type;
+/
+
+CREATE OR REPLACE TYPE sędzia_type;
+/
+
+CREATE OR REPLACE TYPE narodowość_type;
+/
+
+CREATE OR REPLACE TYPE trener_type AS OBJECT (
+    imię               CHAR(20 CHAR),
+    nazwisko           CHAR(20 CHAR),
+    pesel              INTEGER,
+    narodowość         REF narodowość_type,
+    klub               REF klub_type,
+    licencja_trenerska INTEGER
+) NOT FINAL;
+/
+
+CREATE OR REPLACE TYPE klub_type AS OBJECT (
+    kraj_pochodzenia CHAR(20 CHAR),
+    stadion          CHAR(20 CHAR),
+    rok_założenia    INTEGER,
+    piłkarze         REF piłkarz_type,
+    trener           trener_type,
+    numer_id_fifa    INTEGER,
+    liga             CHAR(20 CHAR),
+    ref_stadion_type REF stadion_type
+) NOT FINAL;
+/
+
+CREATE OR REPLACE TYPE liga_type AS OBJECT (
+    nazwa              CHAR(20 CHAR),
+    kraj               CHAR(20 CHAR),
+    liczba_drużyn      INTEGER,
+    rok_założenia      INTEGER,
+    ranking_fifa       INTEGER,
+    klub_numer_id_fifa REF klub_type
+) NOT FINAL;
+/
+
+CREATE OR REPLACE TYPE mecz_type AS OBJECT (
+    ref_sędzia_type REF sędzia_type,
+    ref_klub_type   REF klub_type,
+    data            DATE,
+    wynik           INTEGER,
+    drużyna         CHAR(30 CHAR)
+) NOT FINAL;
+/
+
+CREATE OR REPLACE TYPE narodowość_type AS OBJECT (
+    kraj    CHAR(20 CHAR),
+    język   CHAR(18 CHAR),
+    waluta  CHAR(15 CHAR),
+    stolica CHAR(20 CHAR)
+) NOT FINAL;
+/
+
+CREATE OR REPLACE TYPE piłkarz_type AS OBJECT (
+    imię               CHAR(15 CHAR),
+    nazwisko           CHAR(20 CHAR),
+    pesel              INTEGER,
+    pozycja            CHAR(10 CHAR),
+    numer_koszulki     CHAR(2 CHAR),
+    klub               CHAR(20 CHAR),
+    strzelone_bramki   INTEGER,
+    asysty             INTEGER,
+    narodowość         CHAR(30 CHAR),
+    klub_numer_id_fifa INTEGER
+) NOT FINAL;
+/
+
+-- predefined type, no DDL - MDSYS.SDO_GEOMETRY
+
+CREATE OR REPLACE TYPE sędzia_type AS OBJECT (
+    imię           CHAR(20 CHAR),
+    nazwisko       CHAR(20 CHAR),
+    narodowość     CHAR(20 CHAR),
+    numer_licencji INTEGER
+) NOT FINAL;
+/
+
+CREATE OR REPLACE TYPE stadion_type AS OBJECT (
+    nazwa         CHAR(20 CHAR),
+    miasto        CHAR(30 CHAR),
+    drużyna       CHAR(20 CHAR),
+    kraj          CHAR(20 CHAR),
+    ulica         CHAR(20 CHAR),
+    numer_budynku INTEGER
+) NOT FINAL;
+/
+
+-- predefined type, no DDL - XMLTYPE
+
+CREATE TABLE klub OF klub_type (
+    kraj_pochodzenia NOT NULL,
+    stadion NOT NULL,
+    rok_założenia NOT NULL,
+    piłkarze NOT NULL,
+    trener NOT NULL,
+    numer_id_fifa NOT NULL,
+    liga NOT NULL,
+    CHECK ( trener.imię IS NOT NULL ),
+    CHECK ( trener.nazwisko IS NOT NULL ),
+    CHECK ( trener.pesel IS NOT NULL ),
+    CHECK ( trener.narodowość IS NOT NULL ),
+    CHECK ( trener.klub IS NOT NULL ),
+    CHECK ( trener.licencja_trenerska IS NOT NULL )
+);
+
+CREATE TABLE liga OF liga_type (
+    nazwa NOT NULL,
+    kraj NOT NULL,
+    liczba_drużyn NOT NULL,
+    rok_założenia NOT NULL,
+    ranking_fifa NOT NULL,
+    klub_numer_id_fifa NOT NULL
+);
+
+CREATE TABLE mecz OF mecz_type (
+    ref_sędzia_type NOT NULL,
+    ref_klub_type NOT NULL,
+    data NOT NULL,
+    wynik NOT NULL,
+    drużyna NOT NULL
+);
+
+CREATE TABLE narodowosc OF narodowość_type (
+    kraj NOT NULL,
+    język NOT NULL,
+    waluta NOT NULL,
+    stolica NOT NULL
+);
+
+CREATE TABLE piłkarz OF piłkarz_type (
+    imię NOT NULL,
+    nazwisko NOT NULL,
+    pesel NOT NULL,
+    pozycja NOT NULL,
+    numer_koszulki NOT NULL,
+    klub NOT NULL,
+    strzelone_bramki NOT NULL,
+    asysty NOT NULL,
+    narodowość NOT NULL,
+    klub_numer_id_fifa NOT NULL
+);
+
+CREATE TABLE sędzia OF sędzia_type (
+    imię NOT NULL,
+    nazwisko NOT NULL,
+    narodowość NOT NULL,
+    numer_licencji NOT NULL
+);
+
+CREATE TABLE stadion OF stadion_type (
+    nazwa NOT NULL,
+    miasto NOT NULL,
+    drużyna NOT NULL,
+    kraj NOT NULL,
+    ulica NOT NULL,
+    numer_budynku NOT NULL
+);
+
+CREATE TABLE trener OF trener_type (
+    imię NOT NULL,
+    nazwisko NOT NULL,
+    pesel NOT NULL,
+    narodowość NOT NULL,
+    klub NOT NULL,
+    licencja_trenerska NOT NULL
+);
+
+-- -------------------------------------------------------------------------------
+-- POLECENIA:   5 X INSERT  DO WSZYSTKICH TABEL                                               
+-- -------------------------------------------------------------------------------
+INSERT INTO narodowosc VALUES ('Polska', 'Polski', 'Złoty', 'Warszawa');
+INSERT INTO narodowosc VALUES ('Niemcy', 'Niemiecki', 'Euro', 'Berlin');
+INSERT INTO narodowosc VALUES ('Anglia', 'Angielski', 'Funt', 'Londyn');
+INSERT INTO narodowosc VALUES ('Francja', 'Francuski', 'Euro', 'Paryż');
+INSERT INTO narodowosc VALUES ('Włochy', 'Włoski', 'Euro', 'Rzym');
+
+INSERT INTO piłkarz VALUES (
+    piłkarz_type('Jan', 'Kowalski', 123456789, 'Napastnik', '10', 'Lech Poznań', 20, 10, 'Polska', 1234)
+);
+
+INSERT INTO piłkarz VALUES (
+    piłkarz_type('Andrés', 'Iniesta', 987654321, 'Pomocnik', '8', 'FC Barcelona', 30, 20, 'Hiszpania', 5678)
+);
+
+INSERT INTO piłkarz VALUES (
+    piłkarz_type('Robert', 'Lewandowski', 123456789, 'Napastnik', '9', 'Bayern Monachium', 40, 10, 'Polska', 1234)
+);
+
+INSERT INTO piłkarz VALUES (
+    piłkarz_type('Lionel', 'Messi', 987654321, 'Napastnik', '10', 'Paris Saint-Germain', 30, 15, 'Argentyna', 5678)
+);
+
+INSERT INTO piłkarz VALUES (
+    piłkarz_type('Cristiano', 'Ronaldo', 555555555, 'Napastnik', '7', 'Manchester United', 35, 8, 'Portugalia', 9012)
+);
+
+INSERT INTO stadion VALUES (
+    stadion_type('Stadion Narodowy', 'Warszawa', 'Reprezentacja Polski', 'Polska', 'Aleja Poniatowskiego', 1)
+);
+
+INSERT INTO stadion VALUES (
+    stadion_type('Camp Nou', 'Barcelona', 'FC Barcelona', 'Hiszpania', 'Aristides Maillol', 2)
+);
+
+INSERT INTO stadion VALUES (
+    stadion_type('Old Trafford', 'Manchester', 'Manchester United', 'Anglia', 'Sir Matt Busby Way', 3)
+);
+
+INSERT INTO stadion VALUES (
+    stadion_type('Allianz Arena', 'Monachium', 'Bayern Monachium', 'Niemcy', 'Heisenberg-Allee', 4)
+);
+
+INSERT INTO stadion VALUES (
+    stadion_type('San Siro', 'Mediolan', 'Inter Mediolan', 'Włochy', 'Angelo Moratti', 5)
+);
+
+INSERT INTO klub VALUES (
+    klub_type('Polska', 'Stadion Narodowy', 1920, NULL, NULL, 1234, 'Ekstraklasa', NULL)
+);
+
+INSERT INTO klub VALUES (
+    klub_type('Hiszpania', 'Camp Nou', 1899, NULL, NULL, 5678, 'La Liga', NULL)
+);
+
+INSERT INTO trener VALUES (
+    trener_type('Jurgen', 'Klopp', 123456789, (SELECT REF(n) FROM narodowosc n WHERE n.kraj = 'Niemcy'), (SELECT REF(k) FROM klub k WHERE k.numer_id_fifa = 1234), 1)
+);
+
+INSERT INTO trener VALUES (
+    trener_type('Zinedine', 'Zidane', 987654321, (SELECT REF(n) FROM narodowosc n WHERE n.kraj = 'Francja'), (SELECT REF(k) FROM klub k WHERE k.numer_id_fifa = 5678), 2)
+);
+
+INSERT INTO trener VALUES (
+    trener_type('Pep', 'Guardiola', 456789123, (SELECT REF(n) FROM narodowosc n WHERE n.kraj = 'Hiszpania'), (SELECT REF(k) FROM klub k WHERE k.numer_id_fifa = 9012), 3)
+);
+
+INSERT INTO trener VALUES (
+    trener_type('Mauricio', 'Pochettino', 789123456, (SELECT REF(n) FROM narodowosc n WHERE n.kraj = 'Argentyna'), (SELECT REF(k) FROM klub k WHERE k.numer_id_fifa = 3456), 4)
+);
+
+INSERT INTO trener VALUES (
+    trener_type('Carlo', 'Ancelotti', 234567891, (SELECT REF(n) FROM narodowosc n WHERE n.kraj = 'Włochy'), (SELECT REF(k) FROM klub k WHERE k.numer_id_fifa = 7890), 5)
+);
+
+
+-- -------------------------------------------------------------------------------
+-- USUWANIE STRUKTURY BAZY DANYCH                                           
+-- -------------------------------------------------------------------------------
+
+DROP TABLE klub;
+DROP TABLE liga;
+DROP TABLE mecz;
+DROP TABLE narodowosc;
+DROP TABLE piłkarz;
+DROP TABLE sędzia;
+DROP TABLE stadion;
+DROP TABLE trener;
+
+
+BEGIN
+  FOR cur_tab IN (SELECT table_name FROM user_tables) LOOP
+    EXECUTE IMMEDIATE 'DROP TABLE ' || cur_tab.table_name || ' CASCADE CONSTRAINTS';
+  END LOOP;
+
+  FOR cur_typ IN (SELECT type_name FROM user_types) LOOP
+    EXECUTE IMMEDIATE 'DROP TYPE ' || cur_typ.type_name || ' FORCE';
+  END LOOP;
+END;
+/
