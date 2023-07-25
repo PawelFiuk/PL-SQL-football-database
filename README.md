@@ -7,6 +7,8 @@ Projekt to baza danych na temat piłki nożnej, klubów oraz piłkarzy. Zawiera 
 
 Znajdują się w nim pliki pdf, które posiadają diagramy encji, ERD, typy danych dla bazy ODB, w celu graficznego przedstawienia modelu bazy danych. 
 
+Projekt powstał na oprogramowaniu Oracle sqldeveloper, do modelowania i tworzenia diagramów wykrozystałem datamodeler.
+
 
 
 EN
